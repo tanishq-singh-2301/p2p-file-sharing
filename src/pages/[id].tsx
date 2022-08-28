@@ -7,7 +7,7 @@ interface SocketMessage {
     type?: string;
     sdp?: string;
     myId?: string;
-    candidate? :string;
+    candidate?: string;
 }
 
 const DownloadPage = () => {
@@ -97,7 +97,7 @@ const DownloadPage = () => {
                         break;
                 }
             } catch (error) {
-                console.error(error)
+                console.error((error as Error))
             }
         }
 

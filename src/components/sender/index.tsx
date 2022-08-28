@@ -83,7 +83,7 @@ const Sender = () => {
                         break;
                 }
             } catch (error) {
-                console.error(error);
+                console.error((error as Error));
             }
         }
 
