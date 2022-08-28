@@ -7,6 +7,7 @@ interface SocketMessage {
     type?: string;
     sdp?: string;
     myId?: string;
+    candidate? :string;
 }
 
 const DownloadPage = () => {
@@ -48,9 +49,21 @@ const DownloadPage = () => {
             if (rawData.length === 0) return;
 
             try {
-                const { type, myId, sdp } = (JSON.parse(rawData)?.message as SocketMessage);
+                const { type, myId, sdp, candidate } = (JSON.parse(rawData)?.message as SocketMessage);
 
                 if (!type || !myId) return;
+
+                pc.addEventListener("icecandidate", ({ candidate }) => {
+                    send({
+                        type: "sendto",
+                        sendTo: myId,
+                        message: {
+                            type: "candidate",
+                            candidate: JSON.stringify(candidate),
+                            myId: uuid
+                        }
+                    })
+                });
 
                 switch (type) {
                     case "offer":
@@ -77,7 +90,10 @@ const DownloadPage = () => {
                         pc.addEventListener("icecandidate", addCandidate);
                         break;
 
-                    default:
+                    case "candidate":
+                        if (!candidate) return;
+
+                        await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(candidate)));
                         break;
                 }
             } catch (error) {
