@@ -1,24 +1,27 @@
 import { createContext, useEffect, useState } from "react";
 import useWebSocket from "react-use-websocket";
-import { WebSocketLike } from "react-use-websocket/dist/lib/types";
+import { SendJsonMessage, WebSocketLike } from "react-use-websocket/dist/lib/types";
 
 interface WebSocketInterface {
     ws: WebSocketLike | null;
     uuid: string | null;
+    send: SendJsonMessage
 }
 
 const initialValue: WebSocketInterface = {
     uuid: null,
-    ws: null
+    ws: null,
+    send: () => undefined
 }
 
 const WebSocketCtx = createContext<WebSocketInterface>(initialValue);
 
 const WebSocket = ({ children }: { children: JSX.Element | JSX.Element[] }) => {
-    const { getWebSocket, sendJsonMessage, lastMessage } = useWebSocket(process.env.REACT_APP_WS_SOCKET as string);
     const [value, setValue] = useState<WebSocketInterface>(initialValue);
+    const { getWebSocket, sendJsonMessage, lastMessage } = useWebSocket(process.env.REACT_APP_WS_SOCKET as string, {
+        shouldReconnect: () => true
+    });
 
-    useEffect(() => sendJsonMessage({ type: "whoami" }), []);
     useEffect(() => {
         const data = lastMessage?.data;
 
@@ -28,11 +31,21 @@ const WebSocket = ({ children }: { children: JSX.Element | JSX.Element[] }) => {
         try {
             const { uid } = JSON.parse(data);
 
-            if (uid) setValue(state => { return { uuid: uid, ws: getWebSocket() } });
+            if (uid)
+                setValue({
+                    uuid: uid,
+                    ws: getWebSocket(),
+                    send: sendJsonMessage
+                });
         } catch (error) {
-            console.error((error as any).message);
+            console.error(error);
         }
+
+        // eslint-disable-next-line
     }, [lastMessage]);
+
+    // eslint-disable-next-line
+    useEffect(() => sendJsonMessage({ type: "whoami" }), []);
 
     return (
         <WebSocketCtx.Provider value={value}>
