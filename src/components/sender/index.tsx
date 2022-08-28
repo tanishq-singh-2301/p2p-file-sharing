@@ -37,7 +37,7 @@ const Sender = () => {
                 if (!type || !myId) return;
 
                 pc.addEventListener("icecandidate", ({ candidate }) => {
-                    send({
+                    candidate && send({
                         type: "sendto",
                         sendTo: myId,
                         message: {
