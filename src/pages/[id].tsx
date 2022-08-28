@@ -7,7 +7,6 @@ interface SocketMessage {
     type?: string;
     sdp?: string;
     myId?: string;
-    candidate?: string;
 }
 
 const DownloadPage = () => {
@@ -49,9 +48,9 @@ const DownloadPage = () => {
             if (rawData.length === 0) return;
 
             try {
-                const { type, myId, sdp, candidate } = (JSON.parse(rawData)?.message as SocketMessage);
+                const { type, myId, sdp } = (JSON.parse(rawData)?.message as SocketMessage);
 
-                if (!type || !myId || !candidate) return;
+                if (!type || !myId) return;
 
                 switch (type) {
                     case "offer":
@@ -59,28 +58,18 @@ const DownloadPage = () => {
                         await pc.setRemoteDescription(JSON.parse(sdp));
 
                         const answer = await pc.createAnswer();
-                        await pc.setLocalDescription(answer);
-                        await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(candidate)));
-
-                        const addCandidate = ({ candidate }: RTCPeerConnectionIceEvent) => {
-                            send({
-                                type: "sendto",
-                                sendTo: uuid,
-                                message: {
-                                    type: "answer",
-                                    sdp: JSON.stringify(pc.localDescription),
-                                    myId: id,
-                                    candidate: JSON.stringify(candidate)
-                                }
+                        await pc.setLocalDescription(answer)
+                            .then(() => {
+                                send({
+                                    type: "sendto",
+                                    sendTo: uuid,
+                                    message: {
+                                        type: "answer",
+                                        sdp: JSON.stringify(pc.localDescription),
+                                        myId: id
+                                    }
+                                });
                             });
-
-                            pc.removeEventListener("icecandidate", addCandidate)
-                        }
-
-                        pc.addEventListener("icecandidate", addCandidate);
-                        break;
-
-                    default:
                         break;
                 }
             } catch (error) {

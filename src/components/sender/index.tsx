@@ -6,7 +6,6 @@ interface SocketMessage {
     type?: string;
     sdp?: string;
     myId?: string;
-    candidate: string;
 }
 
 const Sender = () => {
@@ -32,38 +31,31 @@ const Sender = () => {
             if (rawData.length === 0) return;
 
             try {
-                const { type, myId, sdp, candidate } = (JSON.parse(rawData)?.message as SocketMessage);
+                const { type, myId, sdp } = (JSON.parse(rawData)?.message as SocketMessage);
 
                 if (!type || !myId) return;
 
                 switch (type) {
                     case "can-i-get-a-offer":
                         const offer = await pc.createOffer();
-                        pc.setLocalDescription(offer);
-
-                        const addCandidate = ({ candidate }: RTCPeerConnectionIceEvent) => {
-                            send({
-                                type: "sendto",
-                                sendTo: myId,
-                                message: {
-                                    type: "offer",
-                                    sdp: JSON.stringify(pc.localDescription),
-                                    myId: uuid,
-                                    candidate: JSON.stringify(candidate)
-                                }
+                        pc.setLocalDescription(offer)
+                            .then(() => {
+                                send({
+                                    type: "sendto",
+                                    sendTo: myId,
+                                    message: {
+                                        type: "offer",
+                                        sdp: JSON.stringify(pc.localDescription),
+                                        myId: uuid
+                                    }
+                                });
                             });
-
-                            pc.removeEventListener("icecandidate", addCandidate)
-                        }
-
-                        pc.addEventListener("icecandidate", addCandidate);
                         break;
 
                     case "answer":
-                        if (!sdp || !candidate) return;
+                        if (!sdp) return;
 
                         await pc.setRemoteDescription(JSON.parse(sdp));
-                        await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(candidate)));
                         break;
                 }
             } catch (error) {
