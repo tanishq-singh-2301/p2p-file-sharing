@@ -39,16 +39,6 @@ const Sender = () => {
 
                 if (!type || !myId) return;
 
-                pc.addEventListener("icecandidate", ({ candidate }) => send({
-                    type: "sendto",
-                    sendTo: myId,
-                    message: {
-                        type: "candidate",
-                        candidate: JSON.stringify(candidate),
-                        myId: uuid
-                    }
-                }));
-
                 switch (type) {
                     case "can-i-get-a-offer":
                         const offer = await pc.createOffer();
@@ -82,6 +72,16 @@ const Sender = () => {
                             await pc.addIceCandidate(JSON.parse(candidate));
                         break;
                 }
+
+                pc.addEventListener("icecandidate", ({ candidate }) => send({
+                    type: "sendto",
+                    sendTo: myId,
+                    message: {
+                        type: "candidate",
+                        candidate: JSON.stringify(candidate),
+                        myId: uuid
+                    }
+                }));
             } catch (error) {
                 console.error((error as Error));
             }
