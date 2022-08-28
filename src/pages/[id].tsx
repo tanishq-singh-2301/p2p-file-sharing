@@ -93,7 +93,7 @@ const DownloadPage = () => {
                     case "candidate":
                         if (!candidate) return;
 
-                        await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(candidate)));
+                        await pc.addIceCandidate(JSON.parse(candidate));
                         break;
                 }
             } catch (error) {
