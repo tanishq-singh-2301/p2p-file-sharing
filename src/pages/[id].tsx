@@ -22,9 +22,14 @@ const DownloadPage = () => {
         pc.addEventListener("datachannel", ({ channel }) => {
             dc = channel;
 
-            dc.addEventListener("open", () => console.log("Opened"));
+            (window as any).send = (data: string) => dc?.send(data);
+
             dc.addEventListener("close", () => console.log("Closed"));
             dc.addEventListener("message", ({ data }) => console.log(data));
+            dc.addEventListener("open", () => {
+                ws?.close();
+                console.log("Opened");
+            });
         });
 
         send({

@@ -16,9 +16,14 @@ const Sender = () => {
         const pc = new RTCPeerConnection(peerConfig);
         const dc = pc.createDataChannel("data-channel");
 
-        dc.addEventListener("open", () => setInUse(true));
+        (window as any).send = (data: string) => dc?.send(data);
+
         dc.addEventListener("close", () => setInUse(false));
         dc.addEventListener("message", ({ data }) => console.log(data));
+        dc.addEventListener("open", () => {
+            ws?.close();
+            setInUse(true);
+        });
 
         if (!ws) return;
 
@@ -82,7 +87,7 @@ const Sender = () => {
 
     return (
         <div>
-
+            
         </div>
     )
 }
