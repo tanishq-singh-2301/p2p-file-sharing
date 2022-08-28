@@ -44,15 +44,14 @@ const Sender = () => {
                         const offer = await pc.createOffer();
                         pc.setLocalDescription(offer)
 
-                        const addCandidate = ({ candidate }: RTCPeerConnectionIceEvent) => {
+                        const addCandidate = () => {
                             send({
                                 type: "sendto",
                                 sendTo: myId,
                                 message: {
                                     type: "offer",
                                     sdp: JSON.stringify(pc.localDescription),
-                                    myId: uuid,
-                                    candidate: JSON.stringify(candidate)
+                                    myId: uuid
                                 }
                             });
 
@@ -63,9 +62,8 @@ const Sender = () => {
                         break;
 
                     case "answer":
-                        if (sdp && candidate){
+                        if (sdp){
                             await pc.setRemoteDescription(JSON.parse(sdp));
-                            await pc.addIceCandidate(JSON.parse(candidate));
                         }
 
                         break;

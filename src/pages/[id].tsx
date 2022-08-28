@@ -58,22 +58,20 @@ const DownloadPage = () => {
 
                 switch (type) {
                     case "offer":
-                        if (!sdp || !candidate) return;
+                        if (!sdp) return;
                         await pc.setRemoteDescription(JSON.parse(sdp));
 
                         const answer = await pc.createAnswer();
                         await pc.setLocalDescription(answer);
-                        await pc.addIceCandidate(JSON.parse(candidate));
 
-                        const addCandidate = ({ candidate }: RTCPeerConnectionIceEvent) => {
+                        const addCandidate = () => {
                             send({
                                 type: "sendto",
                                 sendTo: uuid,
                                 message: {
                                     type: "answer",
                                     sdp: JSON.stringify(pc.localDescription),
-                                    myId: id,
-                                    candidate: JSON.stringify(candidate)
+                                    myId: id
                                 }
                             });
 
