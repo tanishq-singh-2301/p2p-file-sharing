@@ -92,8 +92,8 @@ const DownloadPage = () => {
                         break;
 
                     case "candidate":
-                        if (candidate)
-                            await pc.addIceCandidate(JSON.parse(candidate));
+                        // if (candidate)
+                        //     await pc.addIceCandidate(JSON.parse(candidate));
 
                         break;
                 }
