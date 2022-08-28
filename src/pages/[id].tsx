@@ -59,8 +59,8 @@ const DownloadPage = () => {
                         await pc.setRemoteDescription(JSON.parse(sdp));
 
                         const answer = await pc.createAnswer();
-                        await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(candidate)));
                         await pc.setLocalDescription(answer);
+                        await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(candidate)));
 
                         const addCandidate = ({ candidate }: RTCPeerConnectionIceEvent) => {
                             send({

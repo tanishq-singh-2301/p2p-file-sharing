@@ -62,8 +62,8 @@ const Sender = () => {
                     case "answer":
                         if (!sdp || !candidate) return;
 
-                        await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(candidate)));
                         await pc.setRemoteDescription(JSON.parse(sdp));
+                        await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(candidate)));
                         break;
                 }
             } catch (error) {
