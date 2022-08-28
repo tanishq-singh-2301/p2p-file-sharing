@@ -18,9 +18,7 @@ const WebSocketCtx = createContext<WebSocketInterface>(initialValue);
 
 const WebSocket = ({ children }: { children: JSX.Element | JSX.Element[] }) => {
     const [value, setValue] = useState<WebSocketInterface>(initialValue);
-    const { getWebSocket, sendJsonMessage, lastMessage } = useWebSocket(process.env.REACT_APP_WS_SOCKET as string, {
-        shouldReconnect: () => true
-    });
+    const { getWebSocket, sendJsonMessage, lastMessage } = useWebSocket(process.env.REACT_APP_WS_SOCKET as string);
 
     useEffect(() => {
         const data = lastMessage?.data;

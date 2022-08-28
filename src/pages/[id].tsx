@@ -1,5 +1,5 @@
 import { useEffect, useContext } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { WebSocketCtx } from '@/context/websocket';
 import peerConfig from '@/utils/peerConfig';
 
@@ -7,11 +7,11 @@ interface SocketMessage {
     type?: string;
     sdp?: string;
     myId?: string;
+    candidate?: string;
 }
 
 const DownloadPage = () => {
     const { pathname } = useLocation();
-    const navigate = useNavigate();
     const { send, uuid: id, ws } = useContext(WebSocketCtx);
 
     useEffect(() => {
@@ -49,9 +49,9 @@ const DownloadPage = () => {
             if (rawData.length === 0) return;
 
             try {
-                const { type, myId, sdp } = (JSON.parse(rawData)?.message as SocketMessage);
+                const { type, myId, sdp, candidate } = (JSON.parse(rawData)?.message as SocketMessage);
 
-                if (!type || !myId) return;
+                if (!type || !myId || !candidate) return;
 
                 switch (type) {
                     case "offer":
@@ -60,15 +60,17 @@ const DownloadPage = () => {
 
                         const answer = await pc.createAnswer();
                         await pc.setLocalDescription(answer);
+                        await pc.addIceCandidate(JSON.parse(candidate));
 
-                        const addCandidate = () => {
+                        const addCandidate = ({ candidate }: RTCPeerConnectionIceEvent) => {
                             send({
                                 type: "sendto",
                                 sendTo: uuid,
                                 message: {
                                     type: "answer",
                                     sdp: JSON.stringify(pc.localDescription),
-                                    myId: id
+                                    myId: id,
+                                    candidate: JSON.stringify(candidate)
                                 }
                             });
 
@@ -78,9 +80,7 @@ const DownloadPage = () => {
                         pc.addEventListener("icecandidate", addCandidate);
                         break;
 
-                    case "inuse":
-                        alert("Sender already in use, please get another link");
-                        navigate("/")
+                    default:
                         break;
                 }
             } catch (error) {
