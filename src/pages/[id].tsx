@@ -58,20 +58,22 @@ const DownloadPage = () => {
 
                 switch (type) {
                     case "offer":
-                        if (!sdp) return;
+                        if (!sdp || !candidate) return;
                         await pc.setRemoteDescription(JSON.parse(sdp));
 
                         const answer = await pc.createAnswer();
                         await pc.setLocalDescription(answer);
+                        await pc.addIceCandidate(JSON.parse(candidate));
 
-                        const addCandidate = () => {
+                        const addCandidate = ({ candidate }: RTCPeerConnectionIceEvent) => {
                             send({
                                 type: "sendto",
                                 sendTo: uuid,
                                 message: {
                                     type: "answer",
                                     sdp: JSON.stringify(pc.localDescription),
-                                    myId: id
+                                    myId: id,
+                                    candidate: JSON.stringify(candidate)
                                 }
                             });
 
@@ -84,19 +86,19 @@ const DownloadPage = () => {
                     case "candidate":
                         if (candidate)
                             await pc.addIceCandidate(JSON.parse(candidate));
-                        
+
                         break;
                 }
 
-                pc.addEventListener("icecandidate", ({ candidate }) => send({
-                    type: "sendto",
-                    sendTo: uuid,
-                    message: {
-                        type: "candidate",
-                        candidate: JSON.stringify(candidate),
-                        myId: id
-                    }
-                }));
+                // pc.addEventListener("icecandidate", ({ candidate }) => send({
+                //     type: "sendto",
+                //     sendTo: uuid,
+                //     message: {
+                //         type: "candidate",
+                //         candidate: JSON.stringify(candidate),
+                //         myId: id
+                //     }
+                // }));
             } catch (error) {
                 console.error((error as Error))
             }

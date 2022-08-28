@@ -44,14 +44,15 @@ const Sender = () => {
                         const offer = await pc.createOffer();
                         pc.setLocalDescription(offer)
 
-                        const addCandidate = () => {
+                        const addCandidate = ({ candidate }: RTCPeerConnectionIceEvent) => {
                             send({
                                 type: "sendto",
                                 sendTo: myId,
                                 message: {
                                     type: "offer",
                                     sdp: JSON.stringify(pc.localDescription),
-                                    myId: uuid
+                                    myId: uuid,
+                                    candidate: JSON.stringify(candidate)
                                 }
                             });
 
@@ -62,8 +63,10 @@ const Sender = () => {
                         break;
 
                     case "answer":
-                        if (sdp)
+                        if (sdp && candidate){
                             await pc.setRemoteDescription(JSON.parse(sdp));
+                            await pc.addIceCandidate(JSON.parse(candidate));
+                        }
 
                         break;
 
@@ -73,15 +76,15 @@ const Sender = () => {
                         break;
                 }
 
-                pc.addEventListener("icecandidate", ({ candidate }) => send({
-                    type: "sendto",
-                    sendTo: myId,
-                    message: {
-                        type: "candidate",
-                        candidate: JSON.stringify(candidate),
-                        myId: uuid
-                    }
-                }));
+                // pc.addEventListener("icecandidate", ({ candidate }) => send({
+                //     type: "sendto",
+                //     sendTo: myId,
+                //     message: {
+                //         type: "candidate",
+                //         candidate: JSON.stringify(candidate),
+                //         myId: uuid
+                //     }
+                // }));
             } catch (error) {
                 console.error((error as Error));
             }
