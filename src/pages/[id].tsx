@@ -53,17 +53,15 @@ const DownloadPage = () => {
 
                 if (!type || !myId) return;
 
-                pc.addEventListener("icecandidate", ({ candidate }) => {
-                    candidate && send({
-                        type: "sendto",
-                        sendTo: myId,
-                        message: {
-                            type: "candidate",
-                            candidate: JSON.stringify(candidate),
-                            myId: uuid
-                        }
-                    })
-                });
+                pc.addEventListener("icecandidate", ({ candidate }) => send({
+                    type: "sendto",
+                    sendTo: myId,
+                    message: {
+                        type: "candidate",
+                        candidate: JSON.stringify(candidate),
+                        myId: uuid
+                    }
+                }));
 
                 switch (type) {
                     case "offer":
@@ -91,9 +89,9 @@ const DownloadPage = () => {
                         break;
 
                     case "candidate":
-                        if (!candidate) return;
-
-                        await pc.addIceCandidate(JSON.parse(candidate));
+                        if (candidate)
+                            await pc.addIceCandidate(JSON.parse(candidate));
+                        
                         break;
                 }
             } catch (error) {

@@ -6,7 +6,7 @@ interface SocketMessage {
     type?: string;
     sdp?: string;
     myId?: string;
-    candidate? :string;
+    candidate?: string;
 }
 
 const Sender = () => {
@@ -36,23 +36,21 @@ const Sender = () => {
 
                 if (!type || !myId) return;
 
-                pc.addEventListener("icecandidate", ({ candidate }) => {
-                    candidate && send({
-                        type: "sendto",
-                        sendTo: myId,
-                        message: {
-                            type: "candidate",
-                            candidate: JSON.stringify(candidate),
-                            myId: uuid
-                        }
-                    })
-                });
+                pc.addEventListener("icecandidate", ({ candidate }) => send({
+                    type: "sendto",
+                    sendTo: myId,
+                    message: {
+                        type: "candidate",
+                        candidate: JSON.stringify(candidate),
+                        myId: uuid
+                    }
+                }));
 
                 switch (type) {
                     case "can-i-get-a-offer":
                         const offer = await pc.createOffer();
                         pc.setLocalDescription(offer)
-                        
+
                         const addCandidate = () => {
                             send({
                                 type: "sendto",
@@ -71,15 +69,15 @@ const Sender = () => {
                         break;
 
                     case "answer":
-                        if (!sdp) return;
+                        if (sdp)
+                            await pc.setRemoteDescription(JSON.parse(sdp));
 
-                        await pc.setRemoteDescription(JSON.parse(sdp));
                         break;
 
                     case "candidate":
-                        if (!candidate) return;
+                        if (candidate)
+                            await pc.addIceCandidate(JSON.parse(candidate));
 
-                        await pc.addIceCandidate(JSON.parse(candidate));
                         break;
                 }
             } catch (error) {
