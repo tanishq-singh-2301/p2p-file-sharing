@@ -58,18 +58,26 @@ const DownloadPage = () => {
                         await pc.setRemoteDescription(JSON.parse(sdp));
 
                         const answer = await pc.createAnswer();
-                        await pc.setLocalDescription(answer)
-                            .then(() => {
-                                send({
-                                    type: "sendto",
-                                    sendTo: uuid,
-                                    message: {
-                                        type: "answer",
-                                        sdp: JSON.stringify(pc.localDescription),
-                                        myId: id
-                                    }
-                                });
+                        await pc.setLocalDescription(answer);
+
+                        const addCandidate = () => {
+                            send({
+                                type: "sendto",
+                                sendTo: uuid,
+                                message: {
+                                    type: "answer",
+                                    sdp: JSON.stringify(pc.localDescription),
+                                    myId: id
+                                }
                             });
+
+                            pc.removeEventListener("icecandidate", addCandidate)
+                        }
+
+                        pc.addEventListener("icecandidate", addCandidate);
+                        break;
+
+                    default:
                         break;
                 }
             } catch (error) {

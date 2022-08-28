@@ -39,17 +39,22 @@ const Sender = () => {
                     case "can-i-get-a-offer":
                         const offer = await pc.createOffer();
                         pc.setLocalDescription(offer)
-                            .then(() => {
-                                send({
-                                    type: "sendto",
-                                    sendTo: myId,
-                                    message: {
-                                        type: "offer",
-                                        sdp: JSON.stringify(pc.localDescription),
-                                        myId: uuid
-                                    }
-                                });
+                        
+                        const addCandidate = () => {
+                            send({
+                                type: "sendto",
+                                sendTo: myId,
+                                message: {
+                                    type: "offer",
+                                    sdp: JSON.stringify(pc.localDescription),
+                                    myId: uuid
+                                }
                             });
+
+                            pc.removeEventListener("icecandidate", addCandidate)
+                        }
+
+                        pc.addEventListener("icecandidate", addCandidate);
                         break;
 
                     case "answer":
