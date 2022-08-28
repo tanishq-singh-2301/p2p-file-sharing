@@ -16,7 +16,7 @@ const DownloadPage = () => {
 
     useEffect(() => {
         const uuid: string = pathname.split("/")[1];
-        const pc = new RTCPeerConnection(peerConfig);
+        let pc = new RTCPeerConnection(peerConfig);
         let dc: RTCDataChannel | null;
 
         pc.addEventListener("datachannel", ({ channel }) => {
@@ -24,7 +24,10 @@ const DownloadPage = () => {
 
             (window as any).send = (data: string) => dc?.send(data);
 
-            dc.addEventListener("close", () => console.log("Closed"));
+            dc.addEventListener("close", () => {
+                pc = new RTCPeerConnection(peerConfig);
+                console.log("Closed")
+            });
             dc.addEventListener("message", ({ data }) => console.log(data));
             dc.addEventListener("open", () => {
                 ws?.close();
@@ -55,11 +58,11 @@ const DownloadPage = () => {
 
                 pc.addEventListener("icecandidate", ({ candidate }) => send({
                     type: "sendto",
-                    sendTo: myId,
+                    sendTo: uuid,
                     message: {
                         type: "candidate",
                         candidate: JSON.stringify(candidate),
-                        myId: uuid
+                        myId: id
                     }
                 }));
 

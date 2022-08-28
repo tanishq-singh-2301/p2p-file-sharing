@@ -13,12 +13,15 @@ const Sender = () => {
     const { uuid, ws, send } = useContext(WebSocketCtx);
 
     useEffect(() => {
-        const pc = new RTCPeerConnection(peerConfig);
-        const dc = pc.createDataChannel("data-channel");
+        let pc = new RTCPeerConnection(peerConfig);
+        let dc = pc.createDataChannel("data-channel");
 
         (window as any).send = (data: string) => dc?.send(data);
 
-        dc.addEventListener("close", () => console.log("Closed"));
+        dc.addEventListener("close", () => {
+            pc = new RTCPeerConnection(peerConfig);
+            console.log("Closed")
+        });
         dc.addEventListener("message", ({ data }) => console.log(data));
         dc.addEventListener("open", () => {
             ws?.close();
@@ -77,7 +80,6 @@ const Sender = () => {
                     case "candidate":
                         if (candidate)
                             await pc.addIceCandidate(JSON.parse(candidate));
-
                         break;
                 }
             } catch (error) {
