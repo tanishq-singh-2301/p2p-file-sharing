@@ -51,36 +51,52 @@ const Sender = () => {
 
                 switch (type) {
                     case "can-i-get-a-offer":
-                        const offer = await pc.createOffer();
-                        pc.setLocalDescription(offer)
+                        // const offer = await pc.createOffer();
+                        // await pc.setLocalDescription(offer)
 
-                        const addCandidate = () => {
-                            send({
-                                type: "sendto",
-                                sendTo: myId,
-                                message: {
-                                    type: "offer",
-                                    sdp: JSON.stringify(pc.localDescription),
-                                    myId: uuid
-                                }
-                            });
+                        // const addCandidate = () => {
+                        //     send({
+                        //         type: "sendto",
+                        //         sendTo: myId,
+                        //         message: {
+                        //             type: "offer",
+                        //             sdp: JSON.stringify(pc.localDescription),
+                        //             myId: uuid
+                        //         }
+                        //     });
 
-                            pc.removeEventListener("icecandidate", addCandidate)
-                        }
+                        //     pc.removeEventListener("icecandidate", addCandidate)
+                        // }
 
-                        pc.addEventListener("icecandidate", addCandidate);
+                        // pc.addEventListener("icecandidate", addCandidate);
+
+                        await pc.createOffer()
+                            .then(async (offer) => {
+                                await pc.setLocalDescription(offer);
+
+                                send({
+                                    type: "sendto",
+                                    sendTo: myId,
+                                    message: {
+                                        type: "offer",
+                                        sdp: JSON.stringify(offer),
+                                        myId: uuid
+                                    }
+                                });
+                            })
+
                         break;
 
                     case "answer":
-                        if (sdp){
+                        if (sdp) {
                             await pc.setRemoteDescription(JSON.parse(sdp));
                         }
 
                         break;
 
                     case "candidate":
-                        // if (candidate)
-                        //     await pc.addIceCandidate(JSON.parse(candidate));
+                        if (candidate)
+                            await pc.addIceCandidate(JSON.parse(candidate));
                         break;
                 }
             } catch (error) {

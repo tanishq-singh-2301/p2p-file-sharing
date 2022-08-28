@@ -71,29 +71,44 @@ const DownloadPage = () => {
                         if (!sdp) return;
                         await pc.setRemoteDescription(JSON.parse(sdp));
 
-                        const answer = await pc.createAnswer();
-                        await pc.setLocalDescription(answer);
+                        // const answer = await pc.createAnswer();
+                        // await pc.setLocalDescription(answer);
 
-                        const addCandidate = () => {
-                            send({
-                                type: "sendto",
-                                sendTo: uuid,
-                                message: {
-                                    type: "answer",
-                                    sdp: JSON.stringify(pc.localDescription),
-                                    myId: id
-                                }
+                        // const addCandidate = () => {
+                        //     send({
+                        //         type: "sendto",
+                        //         sendTo: uuid,
+                        //         message: {
+                        //             type: "answer",
+                        //             sdp: JSON.stringify(pc.localDescription),
+                        //             myId: id
+                        //         }
+                        //     });
+
+                        //     pc.removeEventListener("icecandidate", addCandidate)
+                        // }
+
+                        // pc.addEventListener("icecandidate", addCandidate);
+
+                        await pc.createAnswer()
+                            .then(async (answer) => {
+                                await pc.setLocalDescription(answer);
+
+                                send({
+                                    type: "sendto",
+                                    sendTo: uuid,
+                                    message: {
+                                        type: "answer",
+                                        sdp: JSON.stringify(answer),
+                                        myId: id
+                                    }
+                                });
                             });
-
-                            pc.removeEventListener("icecandidate", addCandidate)
-                        }
-
-                        pc.addEventListener("icecandidate", addCandidate);
                         break;
 
                     case "candidate":
-                        // if (candidate)
-                        //     await pc.addIceCandidate(JSON.parse(candidate));
+                        if (candidate)
+                            await pc.addIceCandidate(JSON.parse(candidate));
 
                         break;
                 }
