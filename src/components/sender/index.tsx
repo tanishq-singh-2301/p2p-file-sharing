@@ -76,15 +76,15 @@ const Sender = () => {
                         break;
                 }
 
-                // pc.addEventListener("icecandidate", ({ candidate }) => send({
-                //     type: "sendto",
-                //     sendTo: myId,
-                //     message: {
-                //         type: "candidate",
-                //         candidate: JSON.stringify(candidate),
-                //         myId: uuid
-                //     }
-                // }));
+                pc.addEventListener("icecandidate", ({ candidate }) => send({
+                    type: "sendto",
+                    sendTo: myId,
+                    message: {
+                        type: "candidate",
+                        candidate: JSON.stringify(candidate),
+                        myId: uuid
+                    }
+                }));
             } catch (error) {
                 console.error((error as Error));
             }
