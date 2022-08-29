@@ -38,6 +38,8 @@ const DownloadPage = () => {
             });
         });
 
+        pc.addEventListener("connectionstatechange", () => console.warn(pc.connectionState));
+
         send({
             type: "sendto",
             sendTo: uuid,

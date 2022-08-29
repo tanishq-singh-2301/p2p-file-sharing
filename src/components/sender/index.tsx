@@ -24,12 +24,16 @@ const Sender = () => {
             console.log("Closed");
             setOnline(false);
         });
+
         dc.addEventListener("message", ({ data }) => console.log(data));
+
         dc.addEventListener("open", () => {
             ws?.close();
             setOnline(true);
             console.log("Opened");
         });
+
+        pc.addEventListener("connectionstatechange", () => console.warn(pc.connectionState));
 
         if (!ws) return;
 
