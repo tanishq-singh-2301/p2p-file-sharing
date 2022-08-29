@@ -8,6 +8,7 @@ interface WebSocketInterface {
     send: SendJsonMessage
 }
 
+let pong: NodeJS.Timer | null;
 const initialValue: WebSocketInterface = {
     uuid: null,
     ws: null,
@@ -18,7 +19,12 @@ const WebSocketCtx = createContext<WebSocketInterface>(initialValue);
 
 const WebSocket = ({ children }: { children: JSX.Element | JSX.Element[] }) => {
     const [value, setValue] = useState<WebSocketInterface>(initialValue);
-    const { getWebSocket, sendJsonMessage, lastMessage } = useWebSocket(process.env.REACT_APP_WS_SOCKET as string);
+    const { getWebSocket, sendJsonMessage, lastMessage } = useWebSocket(process.env.REACT_APP_WS_SOCKET as string, {
+        onClose() {
+            if (pong)
+                clearInterval(pong);
+        }
+    });
 
     useEffect(() => {
         const data = lastMessage?.data;
@@ -28,13 +34,17 @@ const WebSocket = ({ children }: { children: JSX.Element | JSX.Element[] }) => {
 
         try {
             const { uid } = JSON.parse(data);
+            const ws = getWebSocket();
 
-            if (uid)
+            if (uid){
                 setValue({
                     uuid: uid,
-                    ws: getWebSocket(),
+                    ws,
                     send: sendJsonMessage
                 });
+                
+                pong = setInterval(() => (ws?.readyState === 1) && sendJsonMessage({ type: "pong" }), 2 * 1000);
+            }
         } catch (error) {
             console.error(error);
         }
