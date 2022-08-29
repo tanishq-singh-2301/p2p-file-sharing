@@ -97,6 +97,9 @@ const DownloadPage = () => {
                             await pc.addIceCandidate(JSON.parse(candidate));
 
                         break;
+
+                    default
+                        break;
                 }
             } catch (error) {
                 console.error((error as Error))
