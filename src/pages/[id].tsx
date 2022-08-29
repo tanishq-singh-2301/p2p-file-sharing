@@ -98,7 +98,7 @@ const DownloadPage = () => {
 
                         break;
 
-                    default
+                    default:
                         break;
                 }
             } catch (error) {
