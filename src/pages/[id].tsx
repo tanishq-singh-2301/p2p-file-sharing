@@ -59,12 +59,12 @@ const DownloadPage = () => {
 			if (rawData.length === 0) return;
 
 			try {
-				const { type } = JSON.parse(rawData);
+				const { type: dataType } = JSON.parse(rawData);
 
-				if (type === "sendto") {
-					const { type, myId, sdp, candidate } = JSON.parse(rawData)?.message as SocketMessage;
+				if (dataType === "sendto") {
+					const { type: messageType, myId, sdp, candidate } = JSON.parse(rawData)?.message as SocketMessage;
 
-					if (!type || !myId) return;
+					if (!messageType || !myId) return;
 
 					pc.addEventListener(
 						"icecandidate",
@@ -81,7 +81,7 @@ const DownloadPage = () => {
 							})
 					);
 
-					switch (type) {
+					switch (messageType) {
 						case "offer":
 							if (!sdp) return;
 							await pc.setRemoteDescription(JSON.parse(sdp));
@@ -110,7 +110,7 @@ const DownloadPage = () => {
 						default:
 							break;
 					}
-				} else if (type === "pong") {
+				} else if (dataType === "pong") {
 					console.warn("Maintaining ws");
 				}
 			} catch (error) {

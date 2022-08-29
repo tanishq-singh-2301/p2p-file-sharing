@@ -33,9 +33,7 @@ const Sender = () => {
 			console.log("Opened");
 		});
 
-		pc.addEventListener("connectionstatechange", () =>
-			console.warn(pc.connectionState)
-		);
+		pc.addEventListener("connectionstatechange", () => console.warn(pc.connectionState));
 
 		if (!ws) return;
 
@@ -44,12 +42,12 @@ const Sender = () => {
 			if (rawData.length === 0) return;
 
 			try {
-				const { type } = JSON.parse(rawData);
+				const { type: dataType } = JSON.parse(rawData);
 
-				if (type === "sendto") {
-					const { type, myId, sdp, candidate } = JSON.parse(rawData)?.message as SocketMessage;
+				if (dataType === "sendto") {
+					const { type: messageType, myId, sdp, candidate } = JSON.parse(rawData)?.message as SocketMessage;
 
-					if (!type || !myId) return;
+					if (!messageType || !myId) return;
 
 					pc.addEventListener(
 						"icecandidate",
@@ -66,7 +64,7 @@ const Sender = () => {
 							})
 					);
 
-					switch (type) {
+					switch (messageType) {
 						case "can-i-get-a-offer":
 							await pc.createOffer().then(async (offer) => {
 								await pc.setLocalDescription(offer);
@@ -101,7 +99,7 @@ const Sender = () => {
 					}
 				}
 
-                else if (type === "pong"){
+                else if (dataType === "pong"){
                     console.warn("Maintaining ws")
                 }
 			} catch (error) {
