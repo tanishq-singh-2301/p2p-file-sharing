@@ -1,4 +1,4 @@
-import { useEffect, useContext } from 'react';
+import { useEffect, useContext, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { WebSocketCtx } from '@/context/websocket';
 import peerConfig from '@/utils/peerConfig';
@@ -13,6 +13,7 @@ interface SocketMessage {
 const DownloadPage = () => {
     const { pathname } = useLocation();
     const { send, uuid: id, ws } = useContext(WebSocketCtx);
+    const [online, setOnline] = useState<boolean>(false);
 
     useEffect(() => {
         const uuid: string = pathname.split("/")[1];
@@ -23,15 +24,17 @@ const DownloadPage = () => {
             dc = channel;
 
             (window as any).send = (data: string) => dc?.send(data);
+            (window as any).ws = ws;
 
-            dc.addEventListener("close", () => {
-                pc = new RTCPeerConnection(peerConfig);
-                console.log("Closed")
-            });
             dc.addEventListener("message", ({ data }) => console.log(data));
+            dc.addEventListener("close", () => {
+                console.log("Closed");
+                setOnline(false);
+            });
             dc.addEventListener("open", () => {
                 ws?.close();
                 console.log("Opened");
+                setOnline(true)
             });
         });
 
@@ -71,25 +74,6 @@ const DownloadPage = () => {
                         if (!sdp) return;
                         await pc.setRemoteDescription(JSON.parse(sdp));
 
-                        // const answer = await pc.createAnswer();
-                        // await pc.setLocalDescription(answer);
-
-                        // const addCandidate = () => {
-                        //     send({
-                        //         type: "sendto",
-                        //         sendTo: uuid,
-                        //         message: {
-                        //             type: "answer",
-                        //             sdp: JSON.stringify(pc.localDescription),
-                        //             myId: id
-                        //         }
-                        //     });
-
-                        //     pc.removeEventListener("icecandidate", addCandidate)
-                        // }
-
-                        // pc.addEventListener("icecandidate", addCandidate);
-
                         await pc.createAnswer()
                             .then(async (answer) => {
                                 await pc.setLocalDescription(answer);
@@ -121,7 +105,9 @@ const DownloadPage = () => {
     }, []);
 
     return (
-        <div></div>
+        <div>
+            {online ? <span>Connected</span> : <span>Not connected</span>}
+        </div>
     )
 }
 

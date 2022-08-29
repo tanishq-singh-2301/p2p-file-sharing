@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { WebSocketCtx } from '@/context/websocket';
 import peerConfig from '@/utils/peerConfig';
 
@@ -11,20 +11,23 @@ interface SocketMessage {
 
 const Sender = () => {
     const { uuid, ws, send } = useContext(WebSocketCtx);
+    const [online, setOnline] = useState<boolean>(false);
 
     useEffect(() => {
         let pc = new RTCPeerConnection(peerConfig);
         let dc = pc.createDataChannel("data-channel");
 
         (window as any).send = (data: string) => dc?.send(data);
+        (window as any).ws = ws;
 
         dc.addEventListener("close", () => {
-            pc = new RTCPeerConnection(peerConfig);
-            console.log("Closed")
+            console.log("Closed");
+            setOnline(false);
         });
         dc.addEventListener("message", ({ data }) => console.log(data));
         dc.addEventListener("open", () => {
             ws?.close();
+            setOnline(true);
             console.log("Opened");
         });
 
@@ -51,25 +54,6 @@ const Sender = () => {
 
                 switch (type) {
                     case "can-i-get-a-offer":
-                        // const offer = await pc.createOffer();
-                        // await pc.setLocalDescription(offer)
-
-                        // const addCandidate = () => {
-                        //     send({
-                        //         type: "sendto",
-                        //         sendTo: myId,
-                        //         message: {
-                        //             type: "offer",
-                        //             sdp: JSON.stringify(pc.localDescription),
-                        //             myId: uuid
-                        //         }
-                        //     });
-
-                        //     pc.removeEventListener("icecandidate", addCandidate)
-                        // }
-
-                        // pc.addEventListener("icecandidate", addCandidate);
-
                         await pc.createOffer()
                             .then(async (offer) => {
                                 await pc.setLocalDescription(offer);
@@ -83,20 +67,20 @@ const Sender = () => {
                                         myId: uuid
                                     }
                                 });
-                            })
+                            });
 
                         break;
 
                     case "answer":
-                        if (sdp) {
+                        if (sdp)
                             await pc.setRemoteDescription(JSON.parse(sdp));
-                        }
 
                         break;
 
                     case "candidate":
                         if (candidate)
                             await pc.addIceCandidate(JSON.parse(candidate));
+
                         break;
                 }
             } catch (error) {
@@ -108,7 +92,9 @@ const Sender = () => {
     }, []);
 
     return (
-        <div></div>
+        <div>
+            {online ? <span>Connected</span> : <span>Not connected</span>}
+        </div>
     )
 }
 
