@@ -14,7 +14,8 @@
 		"build": "craco build",
 		"test": "craco test",
 		"eject": "craco eject",
-		"serve": "serve -s build"
+		"serve": "serve -s build",
+		"prepublish": "yarn build"
 	},
 	"eslintConfig": {
 		"extends": [
