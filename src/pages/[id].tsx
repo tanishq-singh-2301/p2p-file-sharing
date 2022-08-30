@@ -9,6 +9,9 @@ const DownloadPage = () => {
 	const pc = usePeerOffer({ connectTo: pathname.split("/")[1], myId, send, ws, });
 
 	useEffect(() => {
+		window.onbeforeunload = () => pc.close();
+		window.onunload = () => pc.close();
+		
 		pc.ondatachannel = ({ channel }) => {
 			console.log(channel.label);
 

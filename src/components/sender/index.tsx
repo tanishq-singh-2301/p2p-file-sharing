@@ -8,6 +8,9 @@ const Sender = () => {
 	const pc = usePeerAnswer({ myId, send, ws });
 
 	useEffect(() => {
+		window.onbeforeunload = () => pc.close();
+		window.onunload = () => pc.close();
+		
 		const dc = pc.createDataChannel("channel_1");
 		const dc2 = pc.createDataChannel("channel_2");
 
