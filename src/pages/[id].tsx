@@ -1,130 +1,19 @@
-import { useEffect, useContext, useState } from "react";
+import { useEffect, useContext } from "react";
 import { useLocation } from "react-router-dom";
 import { WebSocketCtx } from "@/context/websocket";
-import peerConfig from "@/utils/peerConfig";
-
-interface SocketMessage {
-	type?: string;
-	sdp?: string;
-	myId?: string;
-	candidate?: string;
-}
+import usePeerOffer from '@/hooks/peerOffer';
 
 const DownloadPage = () => {
 	const { pathname } = useLocation();
-	const { send, uuid: id, ws } = useContext(WebSocketCtx);
-	const [online, setOnline] = useState<boolean>(false);
+	const { send, uuid: myId, ws } = useContext(WebSocketCtx);
+	const pc = usePeerOffer({ connectTo: pathname.split("/")[1], myId, send, ws, });
 
 	useEffect(() => {
-		const uuid: string = pathname.split("/")[1];
-		let pc = new RTCPeerConnection(peerConfig);
-		let dc: RTCDataChannel | null;
-
-		pc.addEventListener("datachannel", ({ channel }) => {
-			dc = channel;
-
-			(window as any).send = (data: string) => dc?.send(data);
-			(window as any).ws = ws;
-
-			dc.addEventListener("message", ({ data }) => console.log(data));
-			dc.addEventListener("close", () => {
-				console.log("Closed");
-				setOnline(false);
-			});
-			dc.addEventListener("open", () => {
-				ws?.close();
-				console.log("Opened");
-				setOnline(true);
-			});
-		});
-
-		pc.addEventListener("connectionstatechange", () =>
-			console.warn(pc.connectionState)
-		);
-
-		send({
-			type: "sendto",
-			sendTo: uuid,
-			message: {
-				type: "can-i-get-a-offer",
-				sdp: "",
-				myId: id,
-			},
-		});
-
-		if (!ws) return;
-
-		ws.onmessage = async ({ data: rawData }) => {
-			if (typeof rawData !== "string") return;
-			if (rawData.length === 0) return;
-
-			try {
-				const { type: dataType } = JSON.parse(rawData);
-
-				if (dataType === "sendto") {
-					const { type: messageType, myId, sdp, candidate } = JSON.parse(rawData)?.message as SocketMessage;
-
-					if (!messageType || !myId) return;
-
-					pc.addEventListener(
-						"icecandidate",
-						({ candidate }) =>
-							candidate &&
-							send({
-								type: "sendto",
-								sendTo: uuid,
-								message: {
-									type: "candidate",
-									candidate: JSON.stringify(candidate),
-									myId: id,
-								},
-							})
-					);
-
-					switch (messageType) {
-						case "offer":
-							if (!sdp) return;
-							await pc.setRemoteDescription(JSON.parse(sdp));
-
-							await pc.createAnswer().then(async (answer) => {
-								await pc.setLocalDescription(answer);
-
-								send({
-									type: "sendto",
-									sendTo: uuid,
-									message: {
-										type: "answer",
-										sdp: JSON.stringify(answer),
-										myId: id,
-									},
-								});
-							});
-							break;
-
-						case "candidate":
-							if (candidate)
-								await pc.addIceCandidate(JSON.parse(candidate));
-
-							break;
-
-						default:
-							break;
-					}
-				} else if (dataType === "pong") {
-					console.warn("Maintaining ws");
-				}
-			} catch (error) {
-				console.error(error as Error);
-			}
-		};
-
-		// eslint-disable-next-line
-	}, []);
+		pc.ondatachannel = ({ channel }) => console.log(channel.label);
+	}, [pc]);
 
 	return (
-		<div>
-			{online ? <span>Connected</span> : <span>Not connected</span>}
-		</div>
+		<div></div>
 	);
 };
 

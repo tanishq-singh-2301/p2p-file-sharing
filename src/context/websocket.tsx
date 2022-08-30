@@ -43,9 +43,10 @@ const WebSocket = ({ children }: { children: JSX.Element | JSX.Element[] }) => {
                     send: sendJsonMessage
                 });
                 
-                pong = setInterval(() => (ws?.readyState === 1) && sendJsonMessage({ type: "pong" }), 2 * 1000);
+                pong = setInterval(() => (ws?.readyState === 1) && sendJsonMessage({ type: "pong" }), 10 * 1000);
             }
-        } catch (error) {
+        }
+        catch (error) {
             console.error(error);
         }
 
