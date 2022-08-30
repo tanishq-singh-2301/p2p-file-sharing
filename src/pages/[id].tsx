@@ -9,7 +9,17 @@ const DownloadPage = () => {
 	const pc = usePeerOffer({ connectTo: pathname.split("/")[1], myId, send, ws, });
 
 	useEffect(() => {
-		pc.ondatachannel = ({ channel }) => console.log(channel.label);
+		pc.ondatachannel = ({ channel }) => {
+			console.log(channel.label);
+
+			channel.onopen = () => {
+				ws?.close();
+				console.log("Opened");
+			};
+			channel.onclose = () => console.log("Closed");
+		};
+
+		// eslint-disable-next-line
 	}, [pc]);
 
 	return (

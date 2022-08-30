@@ -11,7 +11,10 @@ const Sender = () => {
 		const dc = pc.createDataChannel("channel_1");
 		const dc2 = pc.createDataChannel("channel_2");
 
-		dc.onopen = () => setOnline(true);
+		dc.onopen = () => {
+			setOnline(true);
+			ws?.close();
+		};
 		dc2.onopen = () => console.log("Opened");
 
 		dc.onclose = () => setOnline(false);
