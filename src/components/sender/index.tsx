@@ -49,6 +49,7 @@ const Sender = ({ file }: SenderInterface) => {
 						let offset = 0;
 						const chunkSize = 16384;
 						const fileReader = new FileReader();
+						const readSlice = (o: number) => fileReader.readAsArrayBuffer(file.slice(offset, o + chunkSize));
 
 						fileReader.onerror = ev => console.error('Error reading file:', ev);
 						fileReader.onabort = ev => console.log('File reading aborted:', ev);
@@ -62,9 +63,10 @@ const Sender = ({ file }: SenderInterface) => {
 
 							if (offset < file.size)
 								readSlice(offset);
+							
+							else
+								dataDc.send("EOFD");
 						};
-
-						const readSlice = (o: number) => fileReader.readAsArrayBuffer(file.slice(offset, o + chunkSize));
 
 						readSlice(0);
 						break;

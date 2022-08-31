@@ -33,105 +33,75 @@ const DownloadPage = () => {
 
 			localDc.set(channel.label, channel);
 			setDC(localDc);
-
-			if(channel.label === "file-info"){
-				channel.onmessage = ({ data: rawData }) => {
-					try {
-						const { type, data } = JSON.parse(rawData);
-
-						switch (type) {
-							case "file-info":
-								console.log(data);
-								setFile({
-									arrayBuffer: [],
-									name: data.name,
-									receivedSize: 0,
-									size: data.size,
-									type: data.type
-								});
-								break;
-						}
-					}
-					catch (error) {
-						console.error(error);
-					}
-				}
-			}
-
-			else if(channel.label === "file-data"){
-				channel.binaryType = "arraybuffer";
-				channel.onmessage = ({ data }) => {
-					// if(!file) return;
-
-					const tempBuffer = file?.arrayBuffer ?? [];
-					tempBuffer.push(data as ArrayBuffer);
-
-					setFile({
-						arrayBuffer: tempBuffer,
-						receivedSize: (file?.receivedSize ?? 0)+ (data as ArrayBuffer).byteLength,
-						name: file?.name ?? "",
-						type: file?.type ?? "",
-						size: file?.size ?? 0
-					});
-				}
-			}
 		};
 
 		// eslint-disable-next-line
 	}, []);
 
-	// useEffect(() => {
-	// 	const labels = [...dc.keys()];
-	// 	if(labels.length !== 2) return;
+	useEffect(() => {
+		const labels = [...dc.keys()];
+		if(labels.length !== 2) return;
 		
-	// 	const infoDc = dc.get("file-info");
-	// 	const dataDc = dc.get("file-data");
+		const infoDc = dc.get("file-info");
+		const dataDc = dc.get("file-data");
+		let tempFile: ReceivedFile | null;
 		
-	// 	if(!dataDc || !infoDc) return;
+		if(!dataDc || !infoDc) return;
 
-	// 	dataDc.binaryType = "arraybuffer";
+		dataDc.binaryType = "arraybuffer";
 
-	// 	infoDc.onmessage = ({ data: rawData }) => {
-	// 		try {
-	// 			const { type, data } = JSON.parse(rawData);
+		infoDc.onmessage = ({ data: rawData }) => {
+			try {
+				const { type, data } = JSON.parse(rawData);
 
-	// 			switch (type) {
-	// 				case "file-info":
-	// 					setFile({
-	// 						arrayBuffer: [],
-	// 						name: data.name,
-	// 						receivedSize: 0,
-	// 						size: data.size,
-	// 						type: data.type
-	// 					});
-	// 					break;
-	// 			}
-	// 		}
-	// 		catch (error) {
-	// 			console.error(error);
-	// 		}
-	// 	}
+				switch (type) {
+					case "file-info":
+						tempFile = {
+							arrayBuffer: [],
+							name: data.name,
+							receivedSize: 0,
+							size: data.size,
+							type: data.type
+						}
+						console.log(tempFile);
+						setFile(tempFile);
+						break;
+				}
+			}
+			catch (error) {
+				console.error(error);
+			}
+		}
 
-	// 	dataDc.onmessage = ({ data }) => {
-	// 		if(!file) return;
+		dataDc.onmessage = ({ data }) => {
+			if(!tempFile) return;
 
-	// 		const tempBuffer = file.arrayBuffer;
-	// 		tempBuffer.push(data as ArrayBuffer);
+			if(data === "EOFD"){
+				console.log(tempFile);
+				setFile(tempFile);
+				return;
+			}
 
-	// 		setFile({
-	// 			...file,
-	// 			arrayBuffer: tempBuffer,
-	// 			receivedSize: file.receivedSize + (data as ArrayBuffer).byteLength,
-	// 		});
-	// 	}
+			const tempBuffer = tempFile.arrayBuffer;
+			tempBuffer.push(data as ArrayBuffer);
 
-	// 	// eslint-disable-next-line
-	// }, [dc, file]);
+			tempFile = {
+				...tempFile,
+				arrayBuffer: tempBuffer,
+				receivedSize: tempFile.receivedSize + (data as ArrayBuffer).byteLength
+			}
+
+			setFile(tempFile);
+		}
+
+		// eslint-disable-next-line
+	}, [dc]);
 
 	useEffect(() => {
 		if(!file) return;
-
+		
 		if(file.receivedSize === file.size){
+			console.log(file);
 			const received = new Blob(file.arrayBuffer);
 
 			const downloadAnchor = document.createElement("a");
@@ -160,12 +130,14 @@ const DownloadPage = () => {
 			<button
 				onClick={() => {
 					const infoDc = dc.get("file-info");
-					infoDc && file && infoDc.send(JSON.stringify({ type: "send-file-data" }));
+
+					if(infoDc && file)
+						infoDc.send(JSON.stringify({ type: "send-file-data" }));
 				}}
 				disabled={!file}
 			>File Data</button>
 
-			{ file && <progress max={file.size} value={file.receivedSize} /> }
+			{ file && <progress max={1} value={file.receivedSize / file.size} /> }
 		</div>
 	);
 };
