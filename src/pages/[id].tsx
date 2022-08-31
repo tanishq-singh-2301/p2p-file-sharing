@@ -41,10 +41,10 @@ const DownloadPage = () => {
 	useEffect(() => {
 		const labels = [...dc.keys()];
 		if(labels.length !== 2) return;
-
+		
 		const infoDc = dc.get("file-info");
 		const dataDc = dc.get("file-data");
-
+		
 		if(!dataDc || !infoDc) return;
 
 		dataDc.binaryType = "arraybuffer";
@@ -73,23 +73,18 @@ const DownloadPage = () => {
 		dataDc.onmessage = ({ data }) => {
 			if(!file) return;
 
-			const arrayBuffer = data as ArrayBuffer;
 			const tempBuffer = file.arrayBuffer;
-			tempBuffer.push(arrayBuffer);
+			tempBuffer.push(data as ArrayBuffer);
 
-			const newFile: ReceivedFile = {
+			setFile({
 				...file,
 				arrayBuffer: tempBuffer,
-				receivedSize: file.receivedSize + arrayBuffer.byteLength,
-			}
-
-			console.log(newFile)
-
-			setFile(newFile);
+				receivedSize: file.receivedSize + (data as ArrayBuffer).byteLength,
+			});
 		}
 
 		// eslint-disable-next-line
-	}, [dc]);
+	}, [dc, file]);
 
 	useEffect(() => {
 		if(!file) return;
