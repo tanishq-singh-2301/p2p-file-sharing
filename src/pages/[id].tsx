@@ -33,58 +33,98 @@ const DownloadPage = () => {
 
 			localDc.set(channel.label, channel);
 			setDC(localDc);
+
+			if(channel.label === "file-info"){
+				channel.onmessage = ({ data: rawData }) => {
+					try {
+						const { type, data } = JSON.parse(rawData);
+
+						switch (type) {
+							case "file-info":
+								console.log(data);
+								setFile({
+									arrayBuffer: [],
+									name: data.name,
+									receivedSize: 0,
+									size: data.size,
+									type: data.type
+								});
+								break;
+						}
+					}
+					catch (error) {
+						console.error(error);
+					}
+				}
+			}
+
+			else if(channel.label === "file-data"){
+				channel.binaryType = "arraybuffer";
+				channel.onmessage = ({ data }) => {
+					if(!file) return;
+
+					const tempBuffer = file.arrayBuffer;
+					tempBuffer.push(data as ArrayBuffer);
+
+					setFile({
+						...file,
+						arrayBuffer: tempBuffer,
+						receivedSize: file.receivedSize + (data as ArrayBuffer).byteLength,
+					});
+				}
+			}
 		};
 
 		// eslint-disable-next-line
-	}, [pc]);
+	}, []);
 
-	useEffect(() => {
-		const labels = [...dc.keys()];
-		if(labels.length !== 2) return;
+	// useEffect(() => {
+	// 	const labels = [...dc.keys()];
+	// 	if(labels.length !== 2) return;
 		
-		const infoDc = dc.get("file-info");
-		const dataDc = dc.get("file-data");
+	// 	const infoDc = dc.get("file-info");
+	// 	const dataDc = dc.get("file-data");
 		
-		if(!dataDc || !infoDc) return;
+	// 	if(!dataDc || !infoDc) return;
 
-		dataDc.binaryType = "arraybuffer";
+	// 	dataDc.binaryType = "arraybuffer";
 
-		infoDc.onmessage = ({ data: rawData }) => {
-			try {
-				const { type, data } = JSON.parse(rawData);
+	// 	infoDc.onmessage = ({ data: rawData }) => {
+	// 		try {
+	// 			const { type, data } = JSON.parse(rawData);
 
-				switch (type) {
-					case "file-info":
-						setFile({
-							arrayBuffer: [],
-							name: data.name,
-							receivedSize: 0,
-							size: data.size,
-							type: data.type
-						});
-						break;
-				}
-			}
-			catch (error) {
-				console.error(error);
-			}
-		}
+	// 			switch (type) {
+	// 				case "file-info":
+	// 					setFile({
+	// 						arrayBuffer: [],
+	// 						name: data.name,
+	// 						receivedSize: 0,
+	// 						size: data.size,
+	// 						type: data.type
+	// 					});
+	// 					break;
+	// 			}
+	// 		}
+	// 		catch (error) {
+	// 			console.error(error);
+	// 		}
+	// 	}
 
-		dataDc.onmessage = ({ data }) => {
-			if(!file) return;
+	// 	dataDc.onmessage = ({ data }) => {
+	// 		if(!file) return;
 
-			const tempBuffer = file.arrayBuffer;
-			tempBuffer.push(data as ArrayBuffer);
+	// 		const tempBuffer = file.arrayBuffer;
+	// 		tempBuffer.push(data as ArrayBuffer);
 
-			setFile({
-				...file,
-				arrayBuffer: tempBuffer,
-				receivedSize: file.receivedSize + (data as ArrayBuffer).byteLength,
-			});
-		}
+	// 		setFile({
+	// 			...file,
+	// 			arrayBuffer: tempBuffer,
+	// 			receivedSize: file.receivedSize + (data as ArrayBuffer).byteLength,
+	// 		});
+	// 	}
 
-		// eslint-disable-next-line
-	}, [dc, file]);
+	// 	// eslint-disable-next-line
+	// }, [dc, file]);
 
 	useEffect(() => {
 		if(!file) return;
