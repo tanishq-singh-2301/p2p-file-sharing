@@ -83,6 +83,8 @@ const DownloadPage = () => {
 				receivedSize: file.receivedSize + arrayBuffer.byteLength,
 			}
 
+			console.log(newFile)
+
 			setFile(newFile);
 		}
 
@@ -126,7 +128,7 @@ const DownloadPage = () => {
 				disabled={!file}
 			>File Data</button>
 
-			{ file && <progress max={1} value={file.receivedSize / file.size} /> }
+			{ file && <progress max={file.size} value={file.receivedSize} /> }
 		</div>
 	);
 };
