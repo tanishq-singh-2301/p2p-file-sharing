@@ -29,10 +29,10 @@ const DownloadPage = () => {
 		const localDc = new Map<string, RTCDataChannel>(new Map());
 
 		pc.ondatachannel = ({ channel }) => {
-			channel.onclose = () => console.log(channel.label, " :: Closed");
+			channel.onclose = () => console.warn(channel.label, " :: Closed");
 			channel.onopen = () => {
 				ws?.close();
-				console.log(channel.label, " :: Opened");
+				console.warn(channel.label, " :: Opened");
 			};
 
 			localDc.set(channel.label, channel);
@@ -114,29 +114,44 @@ const DownloadPage = () => {
 
 	return (
 		<div>
-			<button
-				onClick={() => {
-					const infoDc = dc.get("file-info");
-					infoDc &&
-						infoDc.send(JSON.stringify({ type: "send-file-info" }));
-				}}
-			>
-				File Info
-			</button>
+			{[...dc.keys()].length === 2 ? (
+				<div>
+					<button
+						onClick={() => {
+							const infoDc = dc.get("file-info");
+							infoDc &&
+								infoDc.send(
+									JSON.stringify({ type: "send-file-info" })
+								);
+						}}
+					>
+						File Info
+					</button>
 
-			<button
-				onClick={() => {
-					const infoDc = dc.get("file-info");
+					<button
+						onClick={() => {
+							const infoDc = dc.get("file-info");
 
-					if (infoDc && file)
-						infoDc.send(JSON.stringify({ type: "send-file-data" }));
-				}}
-				disabled={!file}
-			>
-				File Data
-			</button>
+							if (infoDc && file)
+								infoDc.send(
+									JSON.stringify({ type: "send-file-data" })
+								);
+						}}
+						disabled={!file}
+					>
+						File Data
+					</button>
 
-			{file && <progress max={1} value={file.receivedSize / file.size} />}
+					{file && (
+						<progress
+							max={1}
+							value={file.receivedSize / file.size}
+						/>
+					)}
+				</div>
+			) : (
+				<div>Not Connected</div>
+			)}
 		</div>
 	);
 };

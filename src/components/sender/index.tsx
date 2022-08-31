@@ -24,10 +24,10 @@ const Sender = ({ file }: SenderInterface) => {
 			setOnline(true);
 			ws?.close();
 		};
-		dataDc.onopen = () => console.log("Opened");
+		dataDc.onopen = () => console.warn("Opened");
 
 		infoDc.onclose = () => setOnline(false);
-		dataDc.onclose = () => console.log("Closed");
+		dataDc.onclose = () => console.warn("Closed");
 
 		infoDc.onmessage = ({ data: rawData }) => {
 			try {
@@ -59,7 +59,7 @@ const Sender = ({ file }: SenderInterface) => {
 						fileReader.onerror = (ev) =>
 							console.error("Error reading file:", ev);
 						fileReader.onabort = (ev) =>
-							console.log("File reading aborted:", ev);
+							console.error("File reading aborted:", ev);
 						fileReader.onload = (ev) => {
 							const fileData = ev.target?.result as ArrayBuffer;
 							if (!fileData) return;

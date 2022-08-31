@@ -31,7 +31,7 @@ const Home = () => {
 
 				{listen && <Sender file={listen} />}
 
-				{url && <span className="text-base font-semibold">{url}</span>}
+				{url && <a href={url} target="_blank" rel="noreferrer" className="text-base font-semibold">{url}</a>}
 			</main>
 		</div>
 	);

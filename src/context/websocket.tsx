@@ -63,17 +63,8 @@ const WebSocket = ({ children }: { children: JSX.Element | JSX.Element[] }) => {
 		// eslint-disable-next-line
 	}, [lastMessage]);
 
-	useEffect(() => {
-		sendJsonMessage({ type: "whoami" });
-		
-		const error = console.error;
-		const warn = console.warn;
-
-		console.error = (data) => !(data as Error).message.includes("WebRTC") && error(data);
-		console.warn = (data) => !(data as Error).message.includes("WebRTC") && warn(data);
-
-		// eslint-disable-next-line
-	}, []);
+	// eslint-disable-next-line
+	useEffect(() => sendJsonMessage({ type: "whoami" }), []);
 
 	return (
 		<WebSocketCtx.Provider value={value}>
