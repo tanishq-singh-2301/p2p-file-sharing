@@ -7,7 +7,7 @@ interface ReceivedFile {
 	name: string;
 	size: number;
 	type: string;
-	arrayBuffer: any;
+	arrayBuffer: any[];
 	receivedSize: number;
 }
 
