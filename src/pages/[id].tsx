@@ -1,7 +1,7 @@
 import { useEffect, useContext, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { WebSocketCtx } from "@/context/websocket";
-import usePeerOffer from '@/hooks/peerOffer';
+import usePeerOffer from "@/hooks/peerOffer";
 
 interface ReceivedFile {
 	name: string;
@@ -14,16 +14,20 @@ interface ReceivedFile {
 const DownloadPage = () => {
 	const { pathname } = useLocation();
 	const { send, uuid: myId, ws } = useContext(WebSocketCtx);
-	const pc = usePeerOffer({ connectTo: pathname.split("/")[1], myId, send, ws, });
+	const pc = usePeerOffer({
+		connectTo: pathname.split("/")[1],
+		myId,
+		send,
+		ws,
+	});
 	const [dc, setDC] = useState<Map<string, RTCDataChannel>>(new Map());
 	const [file, setFile] = useState<ReceivedFile | null>(null);
-
 
 	useEffect(() => {
 		window.onbeforeunload = () => pc.close();
 		window.onunload = () => pc.close();
 		const localDc = new Map<string, RTCDataChannel>(new Map());
-		
+
 		pc.ondatachannel = ({ channel }) => {
 			channel.onclose = () => console.log(channel.label, " :: Closed");
 			channel.onopen = () => {
@@ -39,15 +43,14 @@ const DownloadPage = () => {
 	}, []);
 
 	useEffect(() => {
-		const labels = [...dc.keys()];
-		if(labels.length !== 2) return;
-		
+		if ([...dc.keys()].length !== 2) return;
+
 		const infoDc = dc.get("file-info");
 		const dataDc = dc.get("file-data");
-		let tempFile: ReceivedFile | null;
-		
-		if(!dataDc || !infoDc) return;
 
+		if (!dataDc || !infoDc) return;
+
+		let tempFile: ReceivedFile | null;
 		dataDc.binaryType = "arraybuffer";
 
 		infoDc.onmessage = ({ data: rawData }) => {
@@ -61,26 +64,21 @@ const DownloadPage = () => {
 							name: data.name,
 							receivedSize: 0,
 							size: data.size,
-							type: data.type
-						}
+							type: data.type,
+						};
 						console.log(tempFile);
 						setFile(tempFile);
 						break;
 				}
-			}
-			catch (error) {
+			} catch (error) {
 				console.error(error);
 			}
-		}
+		};
 
 		dataDc.onmessage = ({ data }) => {
-			if(!tempFile) return;
+			if (!tempFile) return;
 
-			if(data === "EOFD"){
-				console.log(tempFile);
-				setFile(tempFile);
-				return;
-			}
+			if (data === "EOFD") return setFile(tempFile);
 
 			const tempBuffer = tempFile.arrayBuffer;
 			tempBuffer.push(data as ArrayBuffer);
@@ -88,19 +86,18 @@ const DownloadPage = () => {
 			tempFile = {
 				...tempFile,
 				arrayBuffer: tempBuffer,
-				receivedSize: tempFile.receivedSize + (data as ArrayBuffer).byteLength
-			}
+				receivedSize:
+					tempFile.receivedSize + (data as ArrayBuffer).byteLength,
+			};
 
 			setFile(tempFile);
-		}
+		};
 
 		// eslint-disable-next-line
 	}, [dc]);
 
 	useEffect(() => {
-		if(!file) return;
-		
-		if(file.receivedSize === file.size){
+		if (file && file.receivedSize === file.size) {
 			console.log(file);
 			const received = new Blob(file.arrayBuffer);
 
@@ -109,12 +106,9 @@ const DownloadPage = () => {
 			downloadAnchor.href = URL.createObjectURL(received);
 			downloadAnchor.download = file.name;
 			downloadAnchor.textContent = `Click to download '${file.name}' (${file.size} bytes)`;
-			downloadAnchor.style.display = 'block';
+			downloadAnchor.style.display = "block";
 
 			downloadAnchor.click();
-
-			// const bitrate = Math.round(receivedSize * 8 / ((new Date()).getTime() - timestampStart));
-			// bitrateDiv.innerHTML = `<strong>Average Bitrate:</strong> ${bitrate} kbits/sec (max: ${bitrateMax} kbits/sec)`;
 		}
 	}, [file]);
 
@@ -123,21 +117,26 @@ const DownloadPage = () => {
 			<button
 				onClick={() => {
 					const infoDc = dc.get("file-info");
-					infoDc && infoDc.send(JSON.stringify({ type: "send-file-info" }));
+					infoDc &&
+						infoDc.send(JSON.stringify({ type: "send-file-info" }));
 				}}
-			>File Info</button>
+			>
+				File Info
+			</button>
 
 			<button
 				onClick={() => {
 					const infoDc = dc.get("file-info");
 
-					if(infoDc && file)
+					if (infoDc && file)
 						infoDc.send(JSON.stringify({ type: "send-file-data" }));
 				}}
 				disabled={!file}
-			>File Data</button>
+			>
+				File Data
+			</button>
 
-			{ file && <progress max={1} value={file.receivedSize / file.size} /> }
+			{file && <progress max={1} value={file.receivedSize / file.size} />}
 		</div>
 	);
 };
