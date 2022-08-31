@@ -5,7 +5,7 @@ import { WebSocketCtx } from '@/context/websocket';
 const Home = () => {
     const input = useRef<HTMLInputElement | null>(null);
     const { uuid } = useContext(WebSocketCtx);
-    const [listen, setListen] = useState<boolean>(false);
+    const [listen, setListen] = useState<File | null>(null);
 
     return (
         <div className="h-full w-full">
@@ -16,14 +16,14 @@ const Home = () => {
                     ref={input}
                     multiple
                     onChange={() => {
-                        if (uuid && uuid.length) {
+                        if (uuid && uuid.length && input.current && input.current.files && input.current.files[0]) {
                             console.log(window.location.href.concat(uuid));
-                            setListen(true);
+                            setListen(input.current.files[0]);
                         }
                     }}
                 />
 
-                {listen && <Sender />}
+                {listen && <Sender file={listen} />}
 
             </main>
         </div>

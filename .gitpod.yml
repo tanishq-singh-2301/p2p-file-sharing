@@ -1,4 +1,4 @@
 tasks:
   - name: Web App
     init: yarn install
-    command: yarn start
+    command: yarn start 
