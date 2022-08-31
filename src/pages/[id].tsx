@@ -114,26 +114,19 @@ const DownloadPage = () => {
 			<button
 				onClick={() => {
 					const infoDc = dc.get("file-info");
-					
-					if(infoDc && file)
-						infoDc.send(JSON.stringify({
-							type: "send-file-info"
-						}));
+					infoDc && infoDc.send(JSON.stringify({ type: "send-file-info" }));
 				}}
 			>File Info</button>
 
 			<button
 				onClick={() => {
 					const infoDc = dc.get("file-info");
-
-					if(infoDc)
-						infoDc.send(JSON.stringify({
-							type: "send-file-data"
-						}));
+					infoDc && file && infoDc.send(JSON.stringify({ type: "send-file-data" }));
 				}}
+				disabled={!file}
 			>File Data</button>
 
-			{ <progress max={1} value={(file?.receivedSize ?? 0) / (file?.size ?? 1)} /> }
+			{ file && <progress max={1} value={file.receivedSize / file.size} /> }
 		</div>
 	);
 };
