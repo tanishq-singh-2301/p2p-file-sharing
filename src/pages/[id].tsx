@@ -61,15 +61,17 @@ const DownloadPage = () => {
 			else if(channel.label === "file-data"){
 				channel.binaryType = "arraybuffer";
 				channel.onmessage = ({ data }) => {
-					if(!file) return;
+					// if(!file) return;
 
-					const tempBuffer = file.arrayBuffer;
+					const tempBuffer = file?.arrayBuffer ?? [];
 					tempBuffer.push(data as ArrayBuffer);
 
 					setFile({
-						...file,
 						arrayBuffer: tempBuffer,
-						receivedSize: file.receivedSize + (data as ArrayBuffer).byteLength,
+						receivedSize: (file?.receivedSize ?? 0)+ (data as ArrayBuffer).byteLength,
+						name: file?.name ?? "",
+						type: file?.type ?? "",
+						size: file?.size ?? 0
 					});
 				}
 			}
