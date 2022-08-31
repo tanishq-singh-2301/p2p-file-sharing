@@ -55,15 +55,25 @@ const WebSocket = ({ children }: { children: JSX.Element | JSX.Element[] }) => {
 					10 * 1000
 				);
 			}
-		} catch (error) {
+		}
+		catch (error) {
 			console.error(error);
 		}
 
 		// eslint-disable-next-line
 	}, [lastMessage]);
 
-	// eslint-disable-next-line
-	useEffect(() => sendJsonMessage({ type: "whoami" }), []);
+	useEffect(() => {
+		sendJsonMessage({ type: "whoami" });
+		
+		const error = console.error;
+		const warn = console.warn;
+
+		console.error = (data) => !(data as Error).message.includes("WebRTC") && error(data);
+		console.warn = (data) => !(data as Error).message.includes("WebRTC") && warn(data);
+
+		// eslint-disable-next-line
+	}, []);
 
 	return (
 		<WebSocketCtx.Provider value={value}>
